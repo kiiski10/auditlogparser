@@ -7,7 +7,7 @@ newFileCount = 0
 cwd = ""
 
 accessedFilesListPath = "importantFiles.txt"
-auditLogFilePath = "auditlog.txt"
+auditLogFilePath = "/var/log/audit/audit.log"
 
 with file(accessedFilesListPath, "r") as oldFiles:
     for oldFile in oldFiles:
