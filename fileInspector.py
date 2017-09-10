@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
-# Skripti katsoo auditin lokeista käytetyt tiedostot ja tallentaa ne importantFiles.txt -tiedostoon.
+# Tämä skripti katsoo auditin lokeista käytetyt tiedostot ja tallentaa ne importantFiles.txt -tiedostoon.
 
-filePaths = []
-fileCount = 0
-newFileCount = 0
+from pathlib import Path
+
+
+filesAndPaths = []
 cwd = ""
+fileCount = 0
+pathCount = 0
+deletedCount = 0
 
-accessedFilesListPath = "importantFiles.txt"
+accessedFilesListPath = "/path/to/importantFiles.txt"
 auditLogFilePath = "/var/log/audit/audit.log"
+
 
 with file(accessedFilesListPath, "r") as oldFiles:
     for oldFile in oldFiles:
-        fileCount += 1
-        filePaths.append(oldFile)
+        filesAndPaths.append(oldFile)
 
 with file(auditLogFilePath, "r") as auditLog:
     for row in auditLog:
@@ -30,13 +34,18 @@ with file(auditLogFilePath, "r") as auditLog:
                     if path.startswith("./"):
                         path = path.replace("./", "/")
                     path = cwd + path
-                if not any(path in w for w in filePaths) and path.startswith("/var/www/"):
-                    filePaths.append(path)
-                    newFileCount += 1
+                if not any(path in w for w in filesAndPaths) and path.startswith("/var/www/"):
+                    filesAndPaths.append(path)
 
 with file(accessedFilesListPath, "w") as oldFiles:
-    for path in sorted(filePaths):
-        # print path,
-        oldFiles.write(path)
+    for path in sorted(filesAndPaths):
+        if Path(path[:-1]).is_file():
+            fileCount += 1
+            # print path,
+            oldFiles.write(path)
+        elif Path(path[:-1]).is_dir():
+            pathCount += 1
+        else:
+            deletedCount += 1
 
-print "Total of", newFileCount + fileCount, "files which of", newFileCount, "was new"
+print "Results\nFiles:", fileCount, "	Paths:", pathCount, "	Deleted:", deletedCount, "\n"
